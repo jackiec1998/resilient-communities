@@ -77,6 +77,8 @@ while True:
         
         else: # Fatal error, message on Slack.
             post_message('Script unable to restart container. Database is offline.')
+
+            time.sleep(3_600) # Sleep an hour.
     
     else:
         log_message('Container is running.')
