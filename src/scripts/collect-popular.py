@@ -39,8 +39,6 @@ def log_message(message):
     with open('logs/collect-popular.log', 'a') as file:
         file.write(f'{get_timestamp()} | {message}\n')
 
-UPDATE_INTERVAL = 10
-
 # Connecting to PRAW.
 reddit = praw.Reddit(
     client_id = os.environ.get('REDDIT_CLIENT_ID'),
@@ -161,6 +159,7 @@ if len(invalid_properties) > 0:
     log_message(f'Found invalid properties in set: {invalid_properties}')
     sys.exit()
 
+UPDATE_INTERVAL = 10
 LAST_SLACK_UPDATE = None
 num_requests = 0
 
