@@ -1,6 +1,6 @@
 # Resilient Communities
 
-This is like the third time I made this repository, so not sure if this is going to stick or not.
+Repository containing code that ingests, manages, and analyzes data for the community resilience project.
 
 ## Components
 
