@@ -31,7 +31,7 @@ open('logs/monitor-mongo.log', 'w').close()
 def get_timestamp():
     return time.strftime('%x %I:%M:%S %p', time.localtime())
 
-def post_message(message, channel='bot-notifications'):
+def post_message(message, channel='logging'):
     slack.chat_postMessage(
         channel = channel,
         text = message
