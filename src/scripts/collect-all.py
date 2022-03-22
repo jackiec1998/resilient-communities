@@ -105,7 +105,7 @@ while True:
 
                 num_comments = collection.estimated_document_count()
 
-                log_message(f'STATUS UPDATE | {num_comments:,} r/all comments | '\
+                log_message(f'{num_comments:,} r/all comments | '\
                     f'{UPDATE_INTERVAL / seconds_elapsed:.2f} cps')
 
                 comments = []
