@@ -106,17 +106,17 @@ while True:
                 num_comments = collection.estimated_document_count()
 
                 log_message(f'STATUS UPDATE | {num_comments:,} r/all comments | '\
-                    '{UPDATE_INTERVAL / seconds_elapsed:.2f} cps')
+                    f'{UPDATE_INTERVAL / seconds_elapsed:.2f} cps')
 
                 comments = []
 
                 start = time.time()
 
-                if date.today() != LAST_SLACK_UPDATE:
-                    post_message('Your daily update. ' \
-                        f'There are currently {num_comments:,} comments in the database.') 
+                if date.today().strftime('%x %p') != LAST_SLACK_UPDATE:
+                    post_message('r/popular comment report: ' \
+                        f'There are currently {num_comments:,} r/popular comments in the database.') 
 
-                    LAST_SLACK_UPDATE = date.today()
+                    LAST_SLACK_UPDATE = date.today().strftime('%x %p')
 
     except praw.exceptions.RedditAPIException as e:
         log_message('PRAW exception caught.')

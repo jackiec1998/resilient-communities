@@ -1,1 +1,0 @@
-ps aux | grep -E 'collect-all.py|collect-popular.py|monitor-mongo.py'

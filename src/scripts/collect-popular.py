@@ -70,8 +70,6 @@ except Exception as e:
     log_message('Database did not connect successfully.')
     sys.exit()
 
-LAST_SLACK_UPDATE = None
-
 # Data type sanity check.
 properties = [
     'comment_limit',
@@ -163,6 +161,7 @@ if len(invalid_properties) > 0:
     log_message(f'Found invalid properties in set: {invalid_properties}')
     sys.exit()
 
+LAST_SLACK_UPDATE = None
 num_requests = 0
 
 while True:
@@ -198,11 +197,13 @@ while True:
             log_message(f'{num_requests:,} requests | {num_documents:,} documents ' \
                 f'{num_threads:,} threads | {num_subreddits:,} subreddits')
 
-            if date.today() != LAST_SLACK_UPDATE:
-                post_message('Your daily update. ' \
-                    f'There are currently {num_threads:,} threads and ' \
+            if date.today().strftime('%x %p') != LAST_SLACK_UPDATE:
+                post_message('r/popular thread report: ' \
+                    f'There are currently {num_threads:,} r/popular threads and ' \
                     f'{num_documents:,} snapshots from ' \
                     f'{num_subreddits:,} in the database.')
+
+                LAST_SLACK_UPDATE = date.today().strftime('%x %p')
 
     except praw.exceptions.RedditAPIException as e:
         log_message('PRAW exception caught.')
