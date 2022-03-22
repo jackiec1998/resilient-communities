@@ -22,7 +22,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-os.chdir('../../') 
+os.chdir('/shared/jackie/resilient-communities/') 
 
 open('logs/collect-popular.log', 'w').close()
 
@@ -197,7 +197,7 @@ while True:
                 f'{num_threads:,} threads | {num_subreddits:,} subreddits')
 
             if date.today().strftime('%x %p') != LAST_SLACK_UPDATE:
-                post_message('r/popular thread report: ' \
+                post_message('*r/popular thread report:* ' \
                     f'There are currently {num_threads:,} r/popular threads and ' \
                     f'{num_documents:,} snapshots from ' \
                     f'{num_subreddits:,} in the database.')

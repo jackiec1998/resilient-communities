@@ -22,7 +22,7 @@ from slack_sdk import WebClient
 
 load_dotenv()
 
-os.chdir('../../') 
+os.chdir('/shared/jackie/resilient-communities/') 
 
 open('logs/collect-all.log', 'w').close()
 
@@ -113,8 +113,8 @@ while True:
                 start = time.time()
 
                 if date.today().strftime('%x %p') != LAST_SLACK_UPDATE:
-                    post_message('r/popular comment report: ' \
-                        f'There are currently {num_comments:,} r/popular comments in the database.') 
+                    post_message('*r/all comment report:* ' \
+                        f'There are currently {num_comments:,} r/all comments in the database.')
 
                     LAST_SLACK_UPDATE = date.today().strftime('%x %p')
 
