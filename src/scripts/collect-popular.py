@@ -193,7 +193,7 @@ while True:
             num_documents = collection.estimated_document_count()
             num_subreddits = len(collection.distinct('subreddit'))
 
-            log_message(f'{num_requests:,} requests | {num_documents:,} documents ' \
+            log_message(f'{num_requests:,} requests | {num_documents:,} documents | ' \
                 f'{num_threads:,} threads | {num_subreddits:,} subreddits')
 
             if date.today().strftime('%x %p') != LAST_SLACK_UPDATE:
