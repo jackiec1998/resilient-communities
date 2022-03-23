@@ -99,7 +99,7 @@ while True:
 
             comments.append(comment)
 
-            if (i + 1) % UPDATE_INTERVAL == 0:
+            if (i + 1) % BATCH_SIZE == 0:
                 seconds_elapsed = time.time() - start
 
                 collection.insert_many(comments)
