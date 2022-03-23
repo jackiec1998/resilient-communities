@@ -180,7 +180,7 @@ while True:
 
             thread['rank'] = rank
 
-            thread['rertieved_utc'] = int(time.time())
+            thread['retrieved_utc'] = int(time.time())
 
         collection.insert_many(threads)
 
