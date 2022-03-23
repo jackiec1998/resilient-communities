@@ -17,7 +17,7 @@ import sys
 import os
 from dotenv import load_dotenv
 from pymongo import MongoClient
-from datetime import date
+import datetime as dt
 from slack_sdk import WebClient
 
 load_dotenv()
@@ -38,8 +38,6 @@ def post_message(message, channel='logging'):
 def log_message(message):
     with open('logs/collect-all.log', 'a') as file:
         file.write(f'{get_timestamp()} | {message}\n')
-
-UPDATE_INTERVAL = 100_000
 
 # Connecting to PRAW.
 reddit = praw.Reddit(
@@ -70,7 +68,10 @@ except Exception as e:
     log_message('Database did not connect successfully.')
     sys.exit()
 
-LAST_SLACK_UPDATE = None
+# Update on Slack every six hours.
+last_slack_update = dt.datetime.now() - dt.timedelta(hours=6)
+UPDATE_INTERVAL = dt.timedelta(hours=6)
+BATCH_SIZE = 100_000 # Size of comment batch before database insert.
 
 while True:
     
@@ -112,11 +113,13 @@ while True:
 
                 start = time.time()
 
-                if date.today().strftime('%x %p') != LAST_SLACK_UPDATE:
+                time_since_last_update = dt.datetime.now() - last_slack_update
+
+                if time_since_last_update >= UPDATE_INTERVAL:
                     post_message('*r/all comment report:* ' \
                         f'There are currently {num_comments:,} r/all comments in the database.')
 
-                    LAST_SLACK_UPDATE = date.today().strftime('%x %p')
+                    last_slack_update = dt.datetime.now()
 
     except praw.exceptions.RedditAPIException as e:
         log_message('PRAW exception caught.')

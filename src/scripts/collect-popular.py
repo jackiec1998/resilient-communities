@@ -16,7 +16,7 @@ import time
 import os
 import sys
 from slack_sdk import WebClient
-from datetime import date
+import datetime as dt
 from pymongo import MongoClient
 from dotenv import load_dotenv
 
@@ -159,9 +159,10 @@ if len(invalid_properties) > 0:
     log_message(f'Found invalid properties in set: {invalid_properties}')
     sys.exit()
 
-UPDATE_INTERVAL = 10
-LAST_SLACK_UPDATE = None
+last_slack_update = dt.datetime.now() - dt.timedelta(hours=6)
+UPDATE_INTERVAL = dt.timedelta(hours=6)
 num_requests = 0
+LOG_INTERVAL = 10
 
 while True:
     try:
@@ -187,7 +188,7 @@ while True:
 
         num_requests += 1
 
-        if num_requests % UPDATE_INTERVAL == 0:
+        if num_requests % LOG_INTERVAL == 0:
 
             num_threads = len(collection.distinct('id'))
             num_documents = collection.estimated_document_count()
@@ -196,13 +197,15 @@ while True:
             log_message(f'{num_requests:,} requests | {num_documents:,} documents | ' \
                 f'{num_threads:,} threads | {num_subreddits:,} subreddits')
 
-            if date.today().strftime('%x %p') != LAST_SLACK_UPDATE:
+            time_since_last_update = dt.datetime.now() - last_slack_update
+
+            if time_since_last_update >= UPDATE_INTERVAL:
                 post_message('*r/popular thread report:* ' \
                     f'There are currently {num_threads:,} r/popular threads and ' \
                     f'{num_documents:,} snapshots from ' \
-                    f'{num_subreddits:,} in the database.')
+                    f'{num_subreddits:,} subreddits in the database.')
 
-                LAST_SLACK_UPDATE = date.today().strftime('%x %p')
+                last_slack_update = dt.datetime.now()
 
     except praw.exceptions.RedditAPIException as e:
         log_message('PRAW exception caught.')
