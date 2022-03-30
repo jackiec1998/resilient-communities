@@ -62,7 +62,7 @@ query = api.search_comments(
 for i, comment in enumerate(query):
     comments[subreddit].insert_one(comment.d_)
 
-    if (i + 1) % 10_000:
+    if (i + 1) % 10_000 == 0:
         timestamp = dt.datetime.fromtimestamp(
             comment.created_utc).strftime('%x %I:%M:%S %p')
         log_message(f'r/{subreddit} comments @ {timestamp}.')
@@ -89,7 +89,7 @@ query = api.search_submissions(
 for i, thread, in enumerate(query):
     threads[subreddit].insert_one(thread.d_)
 
-    if (i + 1) % 10_000:
+    if (i + 1) % 10_000 == 0:
         timestamp = dt.datetime.fromtimestamp(
             threads.created_utc).strftime('%x %I:%M:%S %p')
         log_message(f'r/{subreddit} threads @ {timestamp}.')
