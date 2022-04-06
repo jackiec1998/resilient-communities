@@ -25,13 +25,14 @@ parser = argparse.ArgumentParser(
 
 parser.add_argument(
     '--subreddit',
+    nargs='+',
     help='Give me the name of the subreddit you want to collect from.',
     required=True
 )
 
 args = parser.parse_args()
 
-subreddit = args.subreddit
+subreddits = args.subreddit
 
 os.chdir('/shared/jackie/resilient-communities')
 
@@ -58,76 +59,78 @@ except Exception as e:
 api = PushshiftAPI()
 
 
-def collect_comments():
-    if subreddit in comments.list_collection_names():
-        start = int(next(comments[subreddit].find({})
-                         .sort('created_utc', -1).limit(1))['created_utc'])
-    else:
-        start = int(dt.datetime(2020, 1, 1).timestamp())
+def collect_comments(subreddit):
+    while True:
+        try:
+            if subreddit in comments.list_collection_names():
+                start = int(next(comments[subreddit].find({})
+                                 .sort('created_utc', -1).limit(1))['created_utc'])
+            else:
+                start = int(dt.datetime(2020, 1, 1).timestamp())
 
-    query = api.search_comments(
-        subreddit=subreddit,
-        sort_type='created_utc',
-        sort='asc',
-        after=start
-    )
+            query = api.search_comments(
+                subreddit=subreddit,
+                sort_type='created_utc',
+                sort='asc',
+                after=start
+            )
 
-    for i, comment in enumerate(query):
-        comments[subreddit].insert_one(comment.d_)
+            for i, comment in enumerate(query):
+                comments[subreddit].insert_one(comment.d_)
 
-        if (i + 1) % 10_000 == 0:
-            timestamp = dt.datetime.fromtimestamp(
-                comment.created_utc).strftime('%x %I:%M:%S %p')
-            log_message(f'r/{subreddit} comments @ {timestamp}.')
+                if (i + 1) % 10_000 == 0:
+                    timestamp = dt.datetime.fromtimestamp(
+                        comment.created_utc).strftime('%x %I:%M:%S %p')
+                    log_message(f'r/{subreddit} comments @ {timestamp}.')
+
+            break
+
+        except Exception as e:
+            log_message(e)
+            continue
 
 
-log_message(f'Collecting r/{subreddit} comments.')
+def collect_threads(subreddit):
+    while True:
+        try:
+            if subreddit in threads.list_collection_names():
+                start = int(next(threads[subreddit].find({})
+                                 .sort('created_utc', -1).limit(1))['created_utc'])
+            else:
+                start = int(dt.datetime(2020, 1, 1).timestamp())
+
+            query = api.search_submissions(
+                subreddit=subreddit,
+                sort_type='created_utc',
+                sort='asc',
+                after=start
+            )
+
+            for i, thread, in enumerate(query):
+                threads[subreddit].insert_one(thread.d_)
+
+                if (i + 1) % 10_000 == 0:
+                    timestamp = dt.datetime.fromtimestamp(
+                        thread.created_utc).strftime('%x %I:%M:%S %p')
+                    log_message(f'r/{subreddit} threads @ {timestamp}.')
+
+            break
+
+        except Exception as e:
+            log_message(e)
+            continue
+
+
 while True:
-    try:
-        collect_comments()
-        break
-    except Exception as e:
-        log_message(e)
-        continue
 
-total_comments = comments[subreddit].estimated_document_count()
+    for subreddit in subreddits:
 
-log_message(f'r/{subreddit} has {total_comments:,} comments.')
+        log_message(f'Collecting r/{subreddit} comments.')
 
+        collect_comments(subreddit)
 
-def collect_threads():
-    if subreddit in threads.list_collection_names():
-        start = int(next(threads[subreddit].find({})
-                         .sort('created_utc', -1).limit(1))['created_utc'])
-    else:
-        start = int(dt.datetime(2020, 1, 1).timestamp())
+        log_message(f'Collecting r/{subreddit} threads.')
 
-    query = api.search_submissions(
-        subreddit=subreddit,
-        sort_type='created_utc',
-        sort='asc',
-        after=start
-    )
+        collect_threads(subreddit)
 
-    for i, thread, in enumerate(query):
-        threads[subreddit].insert_one(thread.d_)
-
-        if (i + 1) % 10_000 == 0:
-            timestamp = dt.datetime.fromtimestamp(
-                thread.created_utc).strftime('%x %I:%M:%S %p')
-            log_message(f'r/{subreddit} threads @ {timestamp}.')
-
-
-log_message(f'Collecting r/{subreddit} threads.')
-while True:
-    try:
-        collect_threads()
-        break
-    except Exception as e:
-        log_message(e)
-        continue
-
-total_threads = threads[subreddit].estimated_document_count()
-
-log_message(f'r/{subreddit} has {total_threads:,} threads.')
-log_message(f'r/{subreddit} has {total_comments:,} comments.')
+    time.sleep(3600)  # Wait an hour.
