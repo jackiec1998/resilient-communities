@@ -19,22 +19,27 @@ import time
 import sys
 import argparse
 
-parser = argparse.ArgumentParser(
-    description='What subreddit do you want to collect from?'
-)
-
-parser.add_argument(
-    '--subreddit',
-    nargs='+',
-    help='Give me the name of the subreddit you want to collect from.',
-    required=True
-)
-
-args = parser.parse_args()
-
-subreddits = args.subreddit
-
 os.chdir('/shared/jackie/resilient-communities')
+
+with open('sample.txt', 'r') as file:
+    subreddits = file.read().split()
+
+# parser = argparse.ArgumentParser(
+#     description='What subreddits do you want to collect from?'
+# )
+
+# parser.add_argument(
+#     '--subreddits',
+#     nargs='+',
+#     help='Give me the names of the subreddits you want to collect from.',
+#     required=True
+# )
+
+# args = parser.parse_args()
+
+# subreddits = args.subreddits
+
+# os.chdir('/shared/jackie/resilient-communities')
 
 open('logs/collect-pushshift.log', 'w').close()
 
@@ -133,4 +138,5 @@ while True:
 
         collect_threads(subreddit)
 
+    log_message('Sleeping for an hour.')
     time.sleep(3600)  # Wait an hour.
