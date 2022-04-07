@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 from tqdm import tqdm
 import pandas as pd
 import numpy as np
+import datetime as dt
 import praw
 import sys
 import os
@@ -61,8 +62,12 @@ def requery_subreddit(subreddit):
             print(message)
 
             # Edit this to find created_utc's that are older than three days.
+            three_days_ago = \
+                int(time.time() - dt.timedelta(days=3).total_seconds())
+
             ids = pd.DataFrame(
-                all_comments.find({'subreddit': {'$eq': subreddit}}, {'id': 1})
+                all_comments.find({'subreddit': {'$eq': subreddit},
+                                   'created_utc': {'$lte': three_days_ago}}, {'id': 1})
             )['id']
 
             if os.path.exists(f'removed/{subreddit}.pkl'):
