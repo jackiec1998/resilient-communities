@@ -48,14 +48,36 @@ Here's a bulletpoint list of notable attributes we can derive from r/popular thr
 
     - `*percent_newcomers_removed:` The percentage of newcomers that were removed.
 
+- Percentage of removed comments that were posted by newcomers.
+
 - `*peak_rank:` The highest rank an r/popular reaches in its lifespan.
 
 ## Analysis
 
-- `num_comments ~ percent_newcomers:` Is there any relation to the prevalence of newcomers to the number of comments an r/popular receives?
+- `num_comments ~ percent_newcomers + active_window + popular_window + created_to_popular:` Is there any relation to the prevalence of newcomers to the number of comments an r/popular receives?
 
 - `peak_rank ~ percent_newcomers:` Does the percentage of newcomers have any relation to how high an r/popular thread reaches?
 
 - `percent_removal ~ percent_newcomers:` Does the percentage of newcomers have any relation to the percentage of removed comments in an r/popular thread?
 
-Still haven't used `active_window`, `popular_window`, `created_to_popular` as indepdenent or dependent variables. 
+Still haven't used `active_window`, `popular_window`, `created_to_popular` as indepdenent or dependent variables. These are probably control variables.
+
+`num_removed ~ num_newcomers + active_window + popular_window + created_to_popular`. Other controls, author factors, subreddit, and thread factors. Thread: the type of content. The number of moderators within a community.
+
+Can you estimate the length of a popular window? `popular_window ~ factors`. This is a prediction task. Could be a forecasting task.
+
+There are multiple ways to define survival. On all popular threads, run a regression on the popular window.
+
+Colinear between active, popular, time to popular.
+
+Add more subreddit characteristics for r/popular threads and run a regressions.
+
+Think about the Cox hazard model in Eshwar's document. How long things last on r/popular.
+
+
+- Run some initial regression analysis on the data we have currently.
+- Monitor the requery and Pushshift data collection.
+- Formulate the survival analysis on r/popular threads. -> Reread that document and see where it goes. Main question: how long will a thread be on r/popular? When does most of the activity stop on an r/popular thread?
+- More descriptive statistics on r/popular threads.
+
+`docker run -d --rm --name -scuba-diver --restart=always -v /srv/data/shared/db:/data/db --network host mongo:latest
