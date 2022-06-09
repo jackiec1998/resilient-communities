@@ -31,6 +31,9 @@ parser.add_argument(
     action='store_true'
 )
 
+# Take a flag to refresh only the ones where the created_utc
+# and praw_utc is sufficiently small, e.g., three days.
+
 args = parser.parse_args()
 
 if args.refresh:

@@ -17,31 +17,14 @@ import datetime as dt
 import os
 import time
 import sys
-import argparse
 
 os.chdir('/shared/jackie/resilient-communities')
 
-with open('sample.txt', 'r') as file:
+with open('popular_subreddits.txt', 'r') as file:
     subreddits = file.read().split()
 
-# parser = argparse.ArgumentParser(
-#     description='What subreddits do you want to collect from?'
-# )
-
-# parser.add_argument(
-#     '--subreddits',
-#     nargs='+',
-#     help='Give me the names of the subreddits you want to collect from.',
-#     required=True
-# )
-
-# args = parser.parse_args()
-
-# subreddits = args.subreddits
-
-# os.chdir('/shared/jackie/resilient-communities')
-
 open('logs/collect-pushshift.log', 'w').close()
+open('logs/pushshift-report.log', 'w').close()
 
 
 def get_timestamp():
@@ -50,6 +33,10 @@ def get_timestamp():
 
 def log_message(message):
     with open('logs/collect-pushshift.log', 'a') as file:
+        file.write(f'{get_timestamp()} | {message}\n')
+
+def log_report(message):
+    with open('logs/pushshift-report.log', 'a') as file:
         file.write(f'{get_timestamp()} | {message}\n')
 
 
@@ -80,19 +67,28 @@ def collect_comments(subreddit):
                 after=start
             )
 
+            start = time.time()
+
             for i, comment in enumerate(query):
                 comments[subreddit].insert_one(comment.d_)
 
                 if (i + 1) % 10_000 == 0:
                     timestamp = dt.datetime.fromtimestamp(
                         comment.created_utc).strftime('%x %I:%M:%S %p')
-                    log_message(f'r/{subreddit} comments @ {timestamp}.')
+
+                    seconds_elapsed = time.time() - start
+
+                    log_message(f'r/{subreddit} comments @ {timestamp}, {10_000 / seconds_elapsed:.2f} cps.')
+
+                    start = time.time()
 
             break
 
         except Exception as e:
             log_message(e)
             continue
+
+    log_report(f'r/{subreddit} comments completed.')
 
 
 def collect_threads(subreddit):
@@ -111,19 +107,26 @@ def collect_threads(subreddit):
                 after=start
             )
 
+            start = time.time()
+
             for i, thread, in enumerate(query):
                 threads[subreddit].insert_one(thread.d_)
 
                 if (i + 1) % 10_000 == 0:
                     timestamp = dt.datetime.fromtimestamp(
                         thread.created_utc).strftime('%x %I:%M:%S %p')
-                    log_message(f'r/{subreddit} threads @ {timestamp}.')
+
+                    seconds_elapsed = time.time() - start
+                    
+                    log_message(f'r/{subreddit} threads @ {timestamp}, {10_000 / seconds_elapsed:.2f} tps.')
 
             break
 
         except Exception as e:
             log_message(e)
             continue
+
+    log_report(f'r/{subreddit} threads completed.')
 
 
 while True:
@@ -139,4 +142,5 @@ while True:
         collect_threads(subreddit)
 
     log_message('Sleeping for an hour.')
+    log_report(f'Completed sweep.')
     time.sleep(3600)  # Wait an hour.
