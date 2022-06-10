@@ -75,7 +75,7 @@ for id in tqdm(ids):
             popular_threads.update_one({'id': id}, {'$set': features})
 
             break
-        except Exception:
+        except Exception as e:
             print(f'Exception caught. Sleeping for a bit.')
-            time.sleep(5)
+            time.sleep(100)
             continue
