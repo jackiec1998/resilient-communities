@@ -36,55 +36,48 @@ except Exception as e:
 def requery_subreddit(subreddit):
     while True:
         try:
-            results = []
 
             message = f'Querying r/{subreddit} comments from database.'
             log_message(message)
             print(message)
-
-            if os.path.exists(f'removed/{subreddit}.pkl'):
-                df = pd.read_pickle(f'removed/{subreddit}.pkl')
-            else:
-                df = pd.DataFrame(columns=['id', 'retrieved_utc', 'removed'])
-
-            already_requeried = df['id'].to_list()
 
             # Edit this to find created_utc's that are older than three days.
             three_days_ago = \
                 int(time.time() - dt.timedelta(days=3).total_seconds())
 
             ids = pd.DataFrame(
-                all_comments.find({'subreddit': {'$eq': subreddit},
-                                   'id': {'$nin': already_requeried},
-                                   'created_utc': {'$lte': three_days_ago}}, {'id': 1})
-            )['id']
+                all_comments.find({
+                    'subreddit': subreddit,
+                    'requeried_utc': 0,
+                    'created_utc': {'$lte': three_days_ago}
+                }, {'id': 1})
+            )
 
-            fullnames = 't1_' + np.setdiff1d(ids, df['id'].values)
+            if len(ids) == 0:
+                log_message(f'Nothing to update for r/{subreddit}.')
+                print(f'Nothing to update for r/{subreddit}.')
+                break
+
+            fullnames = 't1_' + ids['id'].values
 
             message = f'Requerying {len(fullnames):,} r/{subreddit} comments.'
             log_message(message)
             print(message)
 
             for comment in tqdm(reddit.info(fullnames=fullnames.tolist()), total=len(fullnames.tolist())):
-                results.append({
-                    'id': comment.id,
-                    'retrieved_utc': int(time.time()),
-                    'removed': comment.body == '[removed]'
-                })
 
-            df = df.append(results, ignore_index=True)
-            df.to_pickle(f'removed/{subreddit}.pkl')
+                all_comments.update_one({'id': comment.id}, {'$set': {
+                    'requeried_utc': int(time.time()),
+                    'removed': comment.body == '[removed]'
+                }})
+
             break
 
         except Exception as e:
-            df = df.append(results, ignore_index=True)
-            df.to_pickle(f'removed/{subreddit}.pkl')
             log_message(e)
             continue
 
         except KeyboardInterrupt:
-            df = df.append(results, ignore_index=True)
-            df.to_pickle(f'removed/{subreddit}.pkl')
             sys.exit()
 
 
