@@ -109,3 +109,5 @@ while True:
                 continue
 
     print(f'{len(incompleted_ids):,} threads incompleted.')
+
+    time.sleep(60 * 60)
