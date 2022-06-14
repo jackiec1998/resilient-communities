@@ -4,6 +4,7 @@ import os
 import argparse
 import time
 import pandas as pd
+import datetime as dt
 from tqdm import tqdm
 from dotenv import load_dotenv
 
@@ -43,39 +44,48 @@ def get_popular_threads(filter={}, columns=['id'], n=None):
     return pd.DataFrame(cursor).set_index('id') \
         .drop(columns=['_id'])
 
-if REFRESH:
-    ids = get_popular_threads(filter={'comments': {'$ne': None}}) \
-        .index.to_list()
-else:
-    ids = get_popular_threads(filter={'comments' : {'$ne': None}, 
-        'requery_utc': None}).index.to_list()
+while True:
+    if REFRESH:
+        ids = get_popular_threads(filter={'comments': {'$ne': None}}) \
+            .index.to_list()
+    else:
 
-for id in tqdm(ids):
+        ids = get_popular_threads(filter={'$and': [
+            {'comments': {'$ne': None}},
+            {'$or': [
+                {'praw_utc': {'$gte': int((dt.datetime.now() - dt.timedelta(days=2)).timestamp())}},
+                {'requery_utc': None}
+            ]}
+        ]}).index.to_list()
 
-    while True:
-        try:
-            comments = pd.DataFrame(
-                popular_threads.find_one({'id': id}, {'comments': 1})
-            )['comments'].to_list()
+    for id in tqdm(ids, total=len(ids)):
 
-            removed_comments = []
+        while True:
+            try:
+                comments = pd.DataFrame(
+                    popular_threads.find_one({'id': id}, {'comments': 1})
+                )['comments'].to_list()
 
-            fullnames = ['t1_' + comment['id'] for comment in comments]
+                removed_comments = []
 
-            for comment in reddit.info(fullnames=fullnames):
-                if comment.body == '[removed]':
-                    removed_comments.append(comment.id)
-                
-            features = {
-                'removed_comments': removed_comments,
-                'num_removed': len(removed_comments),
-                'requery_utc': int(time.time())
-            }
+                fullnames = ['t1_' + comment['id'] for comment in comments]
 
-            popular_threads.update_one({'id': id}, {'$set': features})
+                for comment in reddit.info(fullnames=fullnames):
+                    if comment.body == '[removed]':
+                        removed_comments.append(comment.id)
+                    
+                features = {
+                    'removed_comments': removed_comments,
+                    'num_removed': len(removed_comments),
+                    'requery_utc': int(time.time())
+                }
 
-            break
-        except Exception as e:
-            print(f'Exception caught. Sleeping for a bit.')
-            time.sleep(100)
-            continue
+                popular_threads.update_one({'id': id}, {'$set': features})
+
+                break
+            except Exception as e:
+                print(f'Exception caught. Sleeping for a bit.')
+                time.sleep(100)
+                continue
+    
+    time.sleep(60 * 60)
