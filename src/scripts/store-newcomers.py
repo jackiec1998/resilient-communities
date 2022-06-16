@@ -60,7 +60,7 @@ for thread in tqdm(threads.itertuples(), total=len(threads)):
                         'subreddit': thread.subreddit,
                         'missed': True,
                         'comment_missed': comment_id
-                    }})
+                    }}, upsert=True)
                     break
 
                 newcomers.update_one({'author': newcomer, 'subreddit': thread.subreddit}, {'$set': {
