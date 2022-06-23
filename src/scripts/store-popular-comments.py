@@ -94,7 +94,8 @@ def get_praw_comments(thread_id):
     except Forbidden:
         return pd.DataFrame()
 
-thread_ids = get_popular_threads().index.to_list()
+# thread_ids = get_popular_threads(filter={'num_comments': {'$lte': 100}}).index.to_list()
+thread_ids = ['tkwftp']
 missed_ids = []
 
 
@@ -145,6 +146,7 @@ for thread_id in tqdm(thread_ids):
 
         except KeyboardInterrupt:
             print('Keyboard interrupt.')
+            print(missed_ids)
             sys.exit()
 
         except Exception as e:
