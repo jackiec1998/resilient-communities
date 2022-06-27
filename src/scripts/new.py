@@ -290,7 +290,7 @@ def flag_newcomers(thread_id, authors, memoize, disable):
 def generate_features():
 
     thread_ids = get_popular_threads().index.to_list()[23:]
-    missed_ids = {}
+    missed_ids = []
     memoize = {}
     completed = 0
     disable = False
