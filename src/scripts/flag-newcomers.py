@@ -1,8 +1,9 @@
 from pymongo import MongoClient
 from psaw import PushshiftAPI as psaw
-import datetime as dt
 import pandas as pd
 import time
+import os
+import pickle
 from tqdm import tqdm
 import warnings
 
@@ -55,13 +56,26 @@ def flag_newcomers(thread, memoize):
 
         while len(batch) != 0:
 
-            comments = pd.DataFrame(psaw.search_comments(
-                author = batch,
-                subreddit = thread.subreddit,
-                filter = ['author', 'link_id', 'created_utc'],
-                sort = 'asc',
-                limit = 100
-            ))
+            while True:
+                try:
+                    comments = pd.DataFrame(psaw.search_comments(
+                        author = batch,
+                        subreddit = thread.subreddit,
+                        filter = ['author', 'link_id', 'created_utc'],
+                        sort = 'asc',
+                        limit = 100
+                    ))
+                    break
+
+                except KeyboardInterrupt:
+                    print('Keyboard interrupt detected.')
+
+                    with open('memoize.pkl', 'wb') as file:
+                        pickle.dump(memoize, file)
+
+                except Exception as e:
+                    time.sleep(10)
+                    continue
 
             if len(comments) == 0:
                 troublemakers += batch
@@ -101,11 +115,16 @@ if __name__ == '__main__':
 
     start = int(time.time())
 
-    memoize = {}
+    if os.path.isfile('memoize.pkl'):
+        with open('memoize.pkl', 'rb') as file:
+            memoize = pickle.load(file)
+    else:
+        memoize = {}
 
     threads = get_popular_threads(filter={
         'comments': {'$type': 'object'},
-        'comments.0.id': {'$exists': False}
+        'comments.0.id': {'$exists': False},
+        'flagged_newcomers_utc': {'$exists': False}
     }, columns=['authors', 'subreddit'])
 
     for thread in tqdm(threads.itertuples(), total=len(threads)):
