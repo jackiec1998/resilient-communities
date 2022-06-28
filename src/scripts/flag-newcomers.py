@@ -1,4 +1,5 @@
 from pymongo import MongoClient
+import pymongo
 from psaw import PushshiftAPI as psaw
 import pandas as pd
 import time
@@ -103,15 +104,21 @@ def flag_newcomers(thread, memoize):
                 # After we have the link_id, remove them from the batch.
                 batch.remove(comment.author)
 
-    popular_threads.update_one({'id': thread.Index}, {
-        '$set': {
-            'newcomers': newcomers,
-            'num_newcomers': len(newcomers),
-            'troublemakers': troublemakers,
-            'num_troublemakers': len(troublemakers),
-            'flagged_newcomers_utc': int(time.time())
-        }
-    })
+    while True:
+        try:
+            popular_threads.update_one({'id': thread.Index}, {
+                '$set': {
+                    'newcomers': newcomers,
+                    'num_newcomers': len(newcomers),
+                    'troublemakers': troublemakers,
+                    'num_troublemakers': len(troublemakers),
+                    'flagged_newcomers_utc': int(time.time())
+                }
+            })
+            break
+        except pymongo.errors.AutoReconnect:
+            time.sleep(2)
+            continue
 
     return
 
