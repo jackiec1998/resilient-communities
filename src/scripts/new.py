@@ -363,5 +363,5 @@ if __name__ == '__main__':
     # I.e., generate the features.
     generate_features()
 
-    print(f'Script completed @ {dt.timedelta(seconds=int(time.time()) - start)}')
+    print(f'Script took {dt.timedelta(seconds=int(time.time()) - start)}.')
 

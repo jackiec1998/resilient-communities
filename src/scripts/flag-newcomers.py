@@ -6,6 +6,8 @@ import os
 import pickle
 from tqdm import tqdm
 import warnings
+import sys
+import datetime as dt
 
 warnings.filterwarnings('ignore')
 
@@ -72,6 +74,8 @@ def flag_newcomers(thread, memoize):
 
                     with open('memoize.pkl', 'wb') as file:
                         pickle.dump(memoize, file)
+                    
+                    sys.exit()
 
                 except Exception as e:
                     time.sleep(10)
@@ -129,3 +133,5 @@ if __name__ == '__main__':
 
     for thread in tqdm(threads.itertuples(), total=len(threads)):
         flag_newcomers(thread, memoize)
+
+    print(f'Script took: {dt.timedetla(seconds=int(time.time()) - start)}.')
