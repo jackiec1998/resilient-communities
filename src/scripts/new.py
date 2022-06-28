@@ -1,4 +1,5 @@
 from pymongo import MongoClient
+import pymongo
 import pandas as pd
 from tqdm import tqdm
 import datetime as dt
@@ -159,9 +160,15 @@ def store_comments(thread_id):
     comment_dict = complete_comments.reset_index().to_dict('records')
 
     for comment in comment_dict:
-        popular_comments.update_one({'id': comment['id']}, {'$set':
-            comment
-        }, upsert=True)
+        while True:
+            try:
+                popular_comments.update_one({'id': comment['id']}, {'$set':
+                    comment
+                }, upsert=True)
+                break
+            except pymongo.errors.AutoReconnect:
+                time.sleep(2)
+                continue
 
     popular_threads.update_one({'id': thread_id}, {
         '$set': {
@@ -296,14 +303,16 @@ def flag_newcomers(thread_id, authors, memoize, disable):
 
 def generate_features():
 
-    thread_ids = get_popular_threads(
-        filter = {
-            '$or': [
-                {'retrieved_comments_utc': None},
-                {'requeried_comments_utc': None}
-            ]
-        }
-    ).index.to_list()
+    # thread_ids = get_popular_threads(
+    #     filter = {
+    #         '$or': [
+    #             {'retrieved_comments_utc': None},
+    #             {'requeried_comments_utc': None}
+    #         ]
+    #     }
+    # ).index.to_list()
+
+    thread_ids = ['']
 
     if os.path.isfile('missed_ids.pkl'):
         with open('missed-ids.pkl', 'rb') as file:
@@ -364,7 +373,7 @@ if __name__ == '__main__':
     start = int(time.time())
 
     # Store r/popular threads and snapshots.
-    store_popular()
+    # store_popular()
 
     # Store r/popular thread comments, find removed comments, find newcomers.
     # I.e., generate the features.
