@@ -19,6 +19,7 @@ warnings.filterwarnings('ignore')
 client = MongoClient('localhost', 27017)
 popular_snapshots = client.resilient.popular
 popular_threads = client.resilient.popular_threads
+popular_comments = client.resilient.popular_comments
 all_comments = client.resilient.all
 newcomers_collection = client.resilient.newcomers
 
@@ -153,11 +154,17 @@ def store_comments(thread_id):
 
 
     # Insert them into the respective document.
-    comment_dict = complete_comments.to_dict('index')
+    complete_comments['link_id'] = thread_id
+    complete_comments['subreddit'] = popular_threads.find_one({'id': thread_id}, {'subreddit': 1})['subreddit']
+    comment_dict = complete_comments.reset_index().to_dict('records')
+
+    for comment in comment_dict:
+        popular_comments.update_one({'id': comment['id']}, {'$set':
+            comment
+        }, upsert=True)
 
     popular_threads.update_one({'id': thread_id}, {
         '$set': {
-            'comments': comment_dict,
             'num_comments': len(complete_comments),
             'authors': complete_comments['author'].unique().tolist(),
             'num_authors': int(complete_comments['author'].nunique()),
