@@ -159,7 +159,7 @@ def store_comments(thread_id):
     complete_comments['subreddit'] = popular_threads.find_one({'id': thread_id}, {'subreddit': 1})['subreddit']
     comment_dict = complete_comments.reset_index().to_dict('records')
 
-    for comment in comment_dict:
+    for comment in tqdm(comment_dict, total=len(comment_dict), disable=True):
         while True:
             try:
                 popular_comments.update_one({'id': comment['id']}, {'$set':
@@ -355,7 +355,7 @@ def generate_features():
             except Exception as e:
                 if attempts >= 10:
                     print(e)
-                    missed_ids.add(thread_id)
+                    missed_ids.append(thread_id)
                     continue
 
                 print(e)
