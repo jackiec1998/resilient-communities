@@ -6,6 +6,7 @@ from psaw import PushshiftAPI as psaw
 import datetime as dt
 from tqdm import tqdm
 import warnings
+import traceback
 
 warnings.filterwarnings('ignore')
 
@@ -46,13 +47,15 @@ def store_newcomers(thread):
         comments = pd.DataFrame(psaw.search_comments(
             author = batch,
             subreddit = thread.subreddit,
-            filter = ['author', 'link_id', 'created_utc', 'body'],
+            filter = ['author', 'link_id', 'created_utc', 'body', 'id'],
             sort = 'asc'
-        )).drop(columns=['d_', 'created_utc'])
+        )).drop(columns=['d_', 'created'])
+
+        comments['link_id'] = comments['link_id'].str[3:]
 
         # Add the comments to the respective collection.
-        for comment in comments.itertuples():
-            newcomer_comments.update_one({'id': comment.Index}, {'$set':
+        for comment in comments.to_dict('records'):
+            newcomer_comments.update_one({'id': comment['id']}, {'$set':
                 comment
             }, upsert=True)
 
@@ -65,17 +68,19 @@ def store_newcomers(thread):
                 'author': author,
                 'subreddit': thread.subreddit,
                 'link_id': thread.Index,
-                'thread_created_utc': thread.created_utc,
-                'first_comment_utc': author_comments['created_utc'].min(),
-                'last_comment_utc': author_comments['created_utc'].max(),
-                'tenure': author_comments['created_utc'].max() - \
-                    author_comments['created_utc'].min(),
+                'thread_created_utc': int(thread.created_utc),
+                'first_comment_utc': int(author_comments['created_utc'].min()),
+                'last_comment_utc': int(author_comments['created_utc'].max()),
+                'tenure': int(author_comments['created_utc'].max() - \
+                    author_comments['created_utc'].min()),
                 'num_comments': len(author_comments)
             }}, upsert=True)
 
         popular_threads.update_one({'id': thread.Index}, {'$set': {
             'retrieved_newcomer_history_utc': int(time.time())
         }})
+
+        return
 
 if __name__ == '__main__':
 
@@ -107,8 +112,8 @@ if __name__ == '__main__':
                 attempts += 1
 
                 if attempts >= 10:
+                    print(e)
+                    traceback.print_exc()
                     break
-        
-        break
 
     print(f'Script took: {dt.timedelta(seconds=int(time.time()) - start)}')
