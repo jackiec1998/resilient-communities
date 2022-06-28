@@ -303,16 +303,14 @@ def flag_newcomers(thread_id, authors, memoize, disable):
 
 def generate_features():
 
-    # thread_ids = get_popular_threads(
-    #     filter = {
-    #         '$or': [
-    #             {'retrieved_comments_utc': None},
-    #             {'requeried_comments_utc': None}
-    #         ]
-    #     }
-    # ).index.to_list()
-
-    thread_ids = ['']
+    thread_ids = get_popular_threads(
+        filter = {
+            '$or': [
+                {'retrieved_comments_utc': None},
+                {'requeried_comments_utc': None}
+            ]
+        }
+    ).index.to_list()
 
     if os.path.isfile('missed_ids.pkl'):
         with open('missed-ids.pkl', 'rb') as file:
