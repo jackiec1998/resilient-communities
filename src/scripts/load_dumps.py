@@ -68,16 +68,17 @@ if __name__ == '__main__':
         'subreddit'
     ]
 
-    if os.path.isfile('subreddits-loaded.pkl'):
-        with open('subreddits-loaded.pkl', 'rb') as file:
+    pickle_file = file_name.split('.')[0] + '.pkl'
+
+    if os.path.isfile(pickle_file):
+        with open(pickle_file, 'rb') as file:
             subreddits_loaded = pickle.load(file)
     else:
-        subreddits_loaded = {}
+        subreddits_loaded = set()
 
     subreddits = set(popular_threads.distinct('subreddit'))
 
-    if file_name in subreddits_loaded.keys():
-        subreddits = subreddits - subreddits_loaded[file_name]
+    subreddits -= subreddits_loaded
 
     subreddits = list(subreddits)
 
@@ -141,13 +142,11 @@ if __name__ == '__main__':
         traceback.print_exc()
         sys.exit()
 
-    if file_name in subreddits_loaded.keys():
-        subreddits_loaded[file_name] = \
-            subreddits_loaded[file_name].union(set(subreddits))
-    else:
-        subreddits_loaded[file_name] = set(subreddits)
+    subreddits_loaded = subreddits_loaded.union(set(subreddits))
 
-    with open('subreddits-loaded.pkl', 'wb') as file:
+    with open(pickle_file, 'wb') as file:
         pickle.dump(subreddits_loaded, file)
 
-    print(f'Completed @ {dt.datetime.now()} | {file_lines:,} lines read.')    
+    str_format = '%Y-%m-%d %H:%M:%S'
+
+    print(f'Completed @ {dt.datetime.now().strftime(str_format)} | {file_lines:,} lines read.')    
