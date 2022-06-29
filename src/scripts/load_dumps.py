@@ -147,6 +147,7 @@ if __name__ == '__main__':
                      f'{file_lines:,} read | '
                      f'{bad_lines:,} bad | '
                      f'{skipped_lines:,} skipped | '
+                     f'{line_number:,} current | '
                      f'{(bytes_processed / file_size) * 100:.2f}% | '
                      f'{dt.timedelta(seconds=int(time.time()) - start)}')
 
