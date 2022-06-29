@@ -16,6 +16,9 @@ popular_threads = client.resilient.popular_threads
 # in the read_lines_zst() function.
 
 def read_lines_zst(file_name):
+
+    total_lines = 0
+
     with open(file_name, 'rb') as file:
 
         buffer = ''
@@ -34,7 +37,9 @@ def read_lines_zst(file_name):
             lines = (buffer + chunk).split('\n')
 
             for line in lines[:-1]:
-                yield line, file.tell()
+                total_lines += 1
+
+                yield line, file.tell(), line_number
 
             buffer = lines[-1]
         
@@ -49,6 +54,7 @@ if __name__ == '__main__':
     os.chdir('/shared/jackie/resilient-communities/dumps/')
 
     file_name = 'RC_2021-06.zst'
+    last_line = 0
     file_size = os.path.getsize(file_name)
     
     bytes_processed = 0
@@ -91,7 +97,11 @@ if __name__ == '__main__':
         sys.exit()
 
     try:
-        for line, bytes_processed in read_lines_zst(file_name):
+        for line, bytes_processed, line_number in read_lines_zst(file_name):
+
+            if line_number <= last_line:
+                continue
+
             try:
                 comment = json.loads(line)
                 current = dt.datetime.fromtimestamp(int(comment['created_utc']))
