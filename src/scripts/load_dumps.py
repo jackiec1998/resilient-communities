@@ -46,7 +46,7 @@ if __name__ == '__main__':
 
     comments = []
 
-    file_name = 'RC_2022-05.zst'
+    file_name = 'RC_2022-03.zst'
     file_size = os.path.getsize(file_name)
     
     bytes_processed = 0
@@ -91,6 +91,7 @@ if __name__ == '__main__':
                     except Exception as e:
                         attempts += 1
                         if attempts >= 10:
+                            bad_lines += 1
                             break
                         time.sleep(2)
                         continue
