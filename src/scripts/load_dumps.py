@@ -42,6 +42,8 @@ if __name__ == '__main__':
 
     print('Loading comments.')
 
+    start = int(time.time())
+
     os.chdir('/shared/jackie/resilient-communities/dumps/')
 
     file_name = 'RC_2021-06.zst'
@@ -150,3 +152,4 @@ if __name__ == '__main__':
     str_format = '%Y-%m-%d %H:%M:%S'
 
     print(f'Completed @ {dt.datetime.now().strftime(str_format)} | {file_lines:,} lines read.')    
+    print(f'Duration: {dt.timedelta(seconds=int(time.time()) - start)}.')
