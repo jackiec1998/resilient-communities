@@ -1,4 +1,3 @@
-from matplotlib.pyplot import tick_params
 import zstandard
 import os
 from pymongo import MongoClient
@@ -12,6 +11,9 @@ import pickle
 client = MongoClient('localhost', 27017)
 collection = client.resilient.comments
 popular_threads = client.resilient.popular_threads
+
+# TODO: Pick up where you last left by adding an incrementor
+# in the read_lines_zst() function.
 
 def read_lines_zst(file_name):
     with open(file_name, 'rb') as file:
