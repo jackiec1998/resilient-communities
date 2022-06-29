@@ -10,8 +10,8 @@ import traceback
 import time
 
 client = MongoClient('localhost', 27017)
-# pushshift_comments = client.resilient.pushshift_comments
-pushshift_comments = client.resilient.test_comments
+pushshift_comments = client.resilient.pushshift_comments
+# pushshift_comments = client.resilient.test_comments
 
 def read_lines_zst(file_name):
     with open(file_name, 'rb') as file:
@@ -24,6 +24,7 @@ def read_lines_zst(file_name):
         while True:
 
             chunk = reader.read(2**27).decode('utf-8')
+            # chunk = reader.read(2**27).decode('iso-8859-1')
 
             if not chunk:
                 break
@@ -84,6 +85,8 @@ if __name__ == '__main__':
                     try:
                         pushshift_comments.update_one({'id': comment['id']}, 
                             {'$set': comment}, upsert=True)
+
+                        # sys.exit()
                         break
                     except Exception as e:
                         attempts += 1
@@ -104,7 +107,6 @@ if __name__ == '__main__':
                      f'{file_lines:,} lines read | '
                      f'{bad_lines:,} bad lines read | '
                      f'{(bytes_processed / file_size) * 100:.2f}%')
-                sys.exit()
 
     except Exception as e:
         print(e)
